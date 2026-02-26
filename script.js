@@ -391,14 +391,14 @@ function adicionarPolicial() {
           <input type="text" class="form-control nome-policial" list="servidoresDatalist" onchange="conferirPol(this, ${id})">
         </div>
         
-        <div class="col-md-6 d-flex align-items-center pb-1">
+        <div class="col-md-7 d-flex flex-wrap align-items-center pb-1">
           <div class="me-3">
             <span class="label-small">Resumo:</span>
             <span id="resumo_escala_${id}" class="badge bg-dark text-gold" style="font-size: 0.7rem;">NORMAL</span>
             <span id="total_h_${id}" class="badge-hora">--h</span>
           </div>
           <button class="btn btn-outline-warning btn-sm" style="font-size: 0.7rem;" onclick="abrirModalHorarioPol(${id})">
-            <i class="bi bi-clock-history"></i> CONFIGURAR HORÁRIO (NORMAL/EXTRA)
+            <i class="bi bi-clock-history"></i> <span class="d-none d-sm-inline">CONFIGURAR HORÁRIO (NORMAL/EXTRA)</span><span class="d-inline d-sm-none">AJUSTAR HORÁRIO</span>
           </button>
         </div>
       </div>
@@ -536,8 +536,8 @@ function adicionarProc() {
         <div class="col-md-6"><label class="label-small">Crime</label><input type="text" class="form-control c-p" placeholder="Ex: FURTO"></div>
       </div>
       <div class="row g-2">
-        <div class="col-6"><div id="v_cont_${procCount}"></div><button class="btn btn-sm btn-outline-light w-100" style="font-size:0.7rem" onclick="addP(${procCount}, 'V')">+ VÍTIMA</button></div>
-        <div class="col-6"><div id="i_cont_${procCount}"></div><button class="btn btn-sm btn-outline-light w-100" style="font-size:0.7rem" onclick="addP(${procCount}, 'I')">+ INFRATOR</button></div>
+        <div class="col-12 col-md-6 mb-2 mb-md-0"><div id="v_cont_${procCount}"></div><button class="btn btn-sm btn-outline-light w-100" style="font-size:0.7rem" onclick="addP(${procCount}, 'V')">+ VÍTIMA</button></div>
+        <div class="col-12 col-md-6"><div id="i_cont_${procCount}"></div><button class="btn btn-sm btn-outline-light w-100" style="font-size:0.7rem" onclick="addP(${procCount}, 'I')">+ INFRATOR</button></div>
       </div>
       <i class="bi bi-x-circle text-danger position-absolute end-0 top-0 m-2 cursor-pointer" onclick="document.getElementById('proc_${procCount}').remove()"></i>`;
     document.getElementById('procedimentosContainer').appendChild(div);

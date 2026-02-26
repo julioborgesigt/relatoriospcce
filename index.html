@@ -152,6 +152,42 @@
     #confEmail {
       text-transform: none !important;
     }
+
+    /* --- Media Queries para Responsividade --- */
+    @media (max-width: 767px) {
+
+      /* Trunca o nome do usuário em telas menores para evitar quebra de layout */
+      #displayUserInfo {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+
+      /* Ajusta o layout dos botões de ação para empilhar em telas pequenas */
+      .main-card .card-body .d-flex.flex-wrap.justify-content-center {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    @media (max-width: 480px) {
+
+      /* Empilha o cabeçalho do cartão principal em telas muito pequenas */
+      .main-card .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .main-card .card-header>div {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
   </style>
 </head>
 
