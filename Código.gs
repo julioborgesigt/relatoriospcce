@@ -297,7 +297,7 @@ function processarEnvioProdutividade(quant, quali, user, idExistente) {
       
       quant.equipeDetalhada.forEach(pol => {
         sheetEquipe.insertRowBefore(2);
-        sheetEquipe.getRange(2, 1, 1, 12).setValues([[
+        sheetEquipe.getRange(2, 1, 1, 13).setValues([[
           idTransacao,
           pol.nome,
           cidadeAtuacao,
@@ -309,7 +309,8 @@ function processarEnvioProdutividade(quant, quali, user, idExistente) {
           "'" + pol.horaSai,
           pol.totalHoras, // Valor numérico para cálculos
           "'" + pol.matricula,
-          pol.cargo
+          pol.cargo,
+          pol.classe
         ]]);
       });
     }

@@ -736,6 +736,7 @@ function validarERevisar() {
             nome: nome,
             matricula: div.querySelector('.mp').value,
             cargo: div.querySelector('.cp').value,
+            classe: div.dataset.classe || "",
             tipoEscala: div.querySelector('.escala-pol').value,
             dataEnt: polDataEnt,
             horaEnt: polHoraEnt,
