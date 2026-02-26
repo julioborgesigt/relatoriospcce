@@ -2,7 +2,7 @@
  * PONTO DE ENTRADA PARA SITES EXTERNOS (API)
  * Recebe as requisições do seu formulário hospedado fora do Google.
  */
-function doPost(e) {
+function doPost(e) {  
   var requestData;
   try {
     requestData = JSON.parse(e.postData.contents);
@@ -15,8 +15,25 @@ function doPost(e) {
 
   try {
     if (action === "buscarServidor") {
-      result = buscarServidorPelaMatricula(requestData.matricula);
-    } 
+        result = buscarServidorPelaMatricula(requestData.matricula);
+      } 
+      else if (action === "obterDelegacias") {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName("Apoio_Delegacias");
+      // Pega da linha 2 até a última linha com dados na coluna A
+      var lastRow = sheet.getLastRow();
+      var delegacias = [];
+      
+      if (lastRow > 1) {
+        // Lê a coluna A (índice 1) da linha 2 até o fim
+        var values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        // Transforma matriz [[a],[b]] em array [a,b] e remove vazios
+        delegacias = values.map(function(r){ return r[0]; }).filter(function(d){ return d !== ""; });
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify(delegacias)).setMimeType(ContentService.MimeType.JSON);
+    }
+
     else if (action === "enviarToken") {
       result = { sucesso: enviarTokenAcesso(requestData.email, requestData.nome, requestData.matricula) };
     } 
