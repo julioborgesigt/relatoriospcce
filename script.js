@@ -129,7 +129,13 @@ function fazerLogout() {
 
 async function call(payload) {
     const res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
-    return res.json();
+    const text = await res.text();
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        console.error("Erro ao interpretar resposta do servidor:", text);
+        throw new Error("Resposta inválida do servidor.");
+    }
 }
 
 async function buscarEConfirmar() {
@@ -201,7 +207,13 @@ async function iniciar() {
     document.getElementById('displayUserInfo').innerText = userLogado.nome;
 
     // Carrega dados base
-    listaDelegacias = await call({ action: "obterDelegacias" });
+    try {
+        listaDelegacias = await call({ action: "obterDelegacias" });
+        if (!Array.isArray(listaDelegacias)) throw new Error("Formato inválido");
+    } catch (e) {
+        console.warn("Usando lista local de delegacias.", e);
+        listaDelegacias = ["1ª Seccional do Interior Sul", "2ª Seccional do Interior Sul", "3ª Seccional do Interior Sul", "4ª Seccional do Interior Sul", "5ª Seccional do Interior Sul", "1ª Delegacia de Polícia Civil de Juazeiro do Norte", "2ª Delegacia de Polícia Civil de Juazeiro do Norte", "Delegacia de Polícia Civil de Acopiara", "Delegacia de Polícia Civil de Alto Santo", "Delegacia de Polícia Civil de Aracati", "Delegacia de Polícia Civil de Araripe", "Delegacia de Polícia Civil de Assaré", "Delegacia de Polícia Civil de Aurora", "Delegacia de Polícia Civil de Banabuiú", "Delegacia de Polícia Civil de Barbalha", "Delegacia de Polícia Civil de Barro", "Delegacia de Polícia Civil de Beberibe", "Delegacia de Polícia Civil de Brejo Santo", "Delegacia de Polícia Civil de Campos Sales", "Delegacia de Polícia Civil de Caririaçu", "Delegacia de Polícia Civil de Cedro", "Delegacia de Polícia Civil de Crato", "Delegacia de Polícia Civil de Farias Brito", "Delegacia de Polícia Civil de Icapuí", "Delegacia de Polícia Civil de Icó", "Delegacia de Polícia Civil de Iguatu", "Delegacia de Polícia Civil de Ipaumirim", "Delegacia de Polícia Civil de Iracema", "Delegacia de Polícia Civil de Jaguaretama", "Delegacia de Polícia Civil de Jaguaribe", "Delegacia de Polícia Civil de Jaguaruana", "Delegacia de Polícia Civil de Jardim", "Delegacia de Polícia Civil de Jucás", "Delegacia de Polícia Civil de Lavras da Mangabeira", "Delegacia de Polícia Civil de Limoeiro do Norte", "Delegacia de Polícia Civil de Mauriti", "Delegacia de Polícia Civil de Milagres", "Delegacia de Polícia Civil de Missão Velha", "Delegacia de Polícia Civil de Mombaça", "Delegacia de Polícia Civil de Morada Nova", "Delegacia de Polícia Civil de Nova Olinda", "Delegacia de Polícia Civil de Orós", "Delegacia de Polícia Civil de Parambu", "Delegacia de Polícia Civil de Pedra Branca", "Delegacia de Polícia Civil de Penaforte", "Delegacia de Polícia Civil de Quiterianópolis", "Delegacia de Polícia Civil de Quixadá", "Delegacia de Polícia Civil de Quixeramobim", "Delegacia de Polícia Civil de Russas", "Delegacia de Polícia Civil de Saboeiro", "Delegacia de Polícia Civil de São João do Jaguaribe", "Delegacia de Polícia Civil de Senador Pompeu", "Delegacia de Polícia Civil de Solonópole", "Delegacia de Polícia Civil de Tabuleiro do Norte", "Delegacia de Polícia Civil de Tauá", "Delegacia de Polícia Civil de Várzea Alegre", "Unidade de Atendimento de Aiuaba", "Unidade de Atendimento de Fortim", "Unidade de Atendimento de Quixeré"];
+    }
     const dl = document.getElementById('delegaciasOptions');
     dl.innerHTML = "";
     listaDelegacias.forEach(d => dl.innerHTML += `<option value="${d}">`);
