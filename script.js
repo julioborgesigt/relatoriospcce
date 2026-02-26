@@ -57,19 +57,47 @@ function clearDirty() {
 function updatePrintButtonsState() {
     const btnP = document.getElementById('btnImprimirPlantao');
     const btnE = document.getElementById('btnImprimirExtra');
+    const wrapP = document.getElementById('wrapBtnImprimirPlantao');
+    const wrapE = document.getElementById('wrapBtnImprimirExtra');
     const badge = document.getElementById('badgeDirty');
     const banner = document.getElementById('dirtyBanner');
+
     if (!btnP || !btnE) return;
+
+    let disabled = false;
+    let msg = "";
+
     if (isDirty) {
-        btnP.disabled = true; btnE.disabled = true;
-        btnP.title = 'Existem alterações não salvas. Salve ou finalize antes de imprimir.';
-        btnE.title = 'Existem alterações não salvas. Salve ou finalize antes de gerar extra.';
+        disabled = true;
+        msg = 'Existem alterações não salvas. Salve ou finalize antes de imprimir.';
+    } else if (!isFinalized) {
+        disabled = true;
+        msg = 'Finalize o relatório para habilitar a impressão.';
+    } else {
+        disabled = false;
+    }
+
+    const updateBtn = (btn, wrap, message) => {
+        btn.disabled = disabled;
+        btn.style.pointerEvents = disabled ? 'none' : 'auto';
+        if (wrap) {
+            const tooltip = bootstrap.Tooltip.getInstance(wrap);
+            if (tooltip) {
+                wrap.setAttribute('data-bs-original-title', message);
+                disabled ? tooltip.enable() : tooltip.disable();
+            } else {
+                wrap.setAttribute('title', message);
+            }
+        }
+    };
+
+    updateBtn(btnP, wrapP, msg);
+    updateBtn(btnE, wrapE, msg);
+
+    if (isDirty) {
         if (badge) { badge.style.display = 'none'; }
         if (banner) { banner.style.display = 'block'; }
     } else {
-        // Só habilita se já finalizado (comportamento atual mantém impressões bloqueadas até finalização)
-        if (isFinalized) { btnP.disabled = false; btnE.disabled = false; btnP.title = ''; btnE.title = ''; }
-        else { btnP.disabled = true; btnE.disabled = true; btnP.title = ''; btnE.title = ''; }
         if (badge) { badge.style.display = 'none'; }
         if (banner) { banner.style.display = 'none'; }
     }
@@ -109,6 +137,11 @@ window.onload = () => {
         userLogado = JSON.parse(sessaoAtiva);
         iniciar();
     }
+    // Inicializa tooltips do Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
 };
 
 function fazerLogout() {
@@ -879,8 +912,7 @@ function finalizarSessaoSemRecarregar(idSucesso) {
     // Libera as impressões
     const btnP = document.getElementById('btnImprimirPlantao');
     const btnE = document.getElementById('btnImprimirExtra');
-    if (btnP) btnP.disabled = false;
-    if (btnE) btnE.disabled = false;
+    updatePrintButtonsState();
 
     Swal.fire({
         icon: 'success',

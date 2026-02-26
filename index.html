@@ -12,6 +12,7 @@
   <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <style>
     :root {
       --pcce-blue: #0a192f;
@@ -322,10 +323,16 @@
 
             <button onclick="validarERevisar()" class="btn btn-pcce btn-sm px-2">FINALIZAR RELATÓRIO</button>
 
-            <button id="btnImprimirPlantao" onclick="prepararImpressaoPlantao()" class="btn btn-sm btn-success px-2"
-              disabled><i class="bi bi-printer"></i> PLANTÃO</button>
-            <button id="btnImprimirExtra" onclick="abrirModalExtra()" class="btn btn-sm btn-info px-2 text-white"
-              disabled><i class="bi bi-clock-history"></i> EXTRA</button>
+            <span class="d-inline-block" id="wrapBtnImprimirPlantao" tabindex="0" data-bs-toggle="tooltip"
+              data-bs-placement="top" title="Salve ou finalize para imprimir">
+              <button id="btnImprimirPlantao" onclick="prepararImpressaoPlantao()" class="btn btn-sm btn-success px-2"
+                disabled style="pointer-events: none;"><i class="bi bi-printer"></i> PLANTÃO</button>
+            </span>
+            <span class="d-inline-block" id="wrapBtnImprimirExtra" tabindex="0" data-bs-toggle="tooltip"
+              data-bs-placement="top" title="Salve ou finalize para imprimir">
+              <button id="btnImprimirExtra" onclick="abrirModalExtra()" class="btn btn-sm btn-info px-2 text-white"
+                disabled style="pointer-events: none;"><i class="bi bi-clock-history"></i> EXTRA</button>
+            </span>
             <div id="badgeDirty" style="display:none; margin-left:8px;">
               <span class="badge bg-warning text-dark" title="Existem alterações não salvas">ALTERAÇÕES NÃO
                 SALVAS</span>
