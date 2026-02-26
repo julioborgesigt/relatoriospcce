@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PLANTÃO - DPI SUL</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+  <style>
+    :root {
+      --pcce-blue: #0a192f;
+      --pcce-gold: #c5a059;
+      --pcce-card-bg: rgba(255, 255, 255, 0.07);
+    }
+
+    body {
+      background-color: var(--pcce-blue);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    .login-container {
+      max-width: 450px;
+      margin: 60px auto;
+      padding: 30px;
+      background: var(--pcce-card-bg);
+      border: 1px solid var(--pcce-gold);
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    .confirma-card {
+      background: rgba(197, 160, 89, 0.1);
+      border: 1px dashed var(--pcce-gold);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .main-card {
+      background: var(--pcce-card-bg);
+      border: 1px solid var(--pcce-gold);
+      border-radius: 10px;
+      margin-bottom: 40px;
+    }
+
+    .btn-pcce {
+      background: linear-gradient(45deg, #8a6d3b, var(--pcce-gold));
+      color: var(--pcce-blue);
+      font-weight: bold;
+      border: none;
+      padding: 10px;
+      transition: 0.3s;
+    }
+
+    /* Efeito para quando o botão estiver habilitado e o mouse passar em cima */
+    .btn-pcce:hover:not(:disabled) {
+      background: linear-gradient(45deg, var(--pcce-gold), #e7c37d);
+      filter: brightness(1.2);
+      cursor: pointer;
+    }
+
+    /* Força visual de caixa alta nas observações */
+    #obs_plantao {
+      text-transform: uppercase;
+    }
+
+    .veiculo-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border-left: 5px solid var(--pcce-gold);
+      position: relative;
+    }
+
+    /* Nova classe para exibir o total de horas de cada policial */
+    .badge-hora {
+      background: var(--pcce-gold);
+      color: var(--pcce-blue);
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 10px;
+    }
+
+    .check-label {
+      font-size: 0.7rem;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .nome-policial {
+      font-size: 0.85rem !important;
+    }
+
+    .label-small {
+      font-size: 0.7rem;
+      font-weight: bold;
+      color: var(--pcce-gold);
+      text-transform: uppercase;
+      margin-bottom: 3px;
+      display: block;
+    }
+
+    .form-control {
+      background-color: rgba(255, 255, 255, 0.95);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .table-resumo {
+      font-size: 0.75rem;
+      color: white !important;
+    }
+
+    .section-divider {
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--pcce-gold);
+      padding-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title {
+      color: var(--pcce-gold);
+      font-weight: bold;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+    }
+
+    /* Força visualmente a digitação em maiúsculo nos campos principais */
+    input[type="text"],
+    textarea,
+    .form-control {
+      text-transform: uppercase;
+    }
+
+    /* Evita que campos específicos como e-mail ou senha sejam afetados se necessário */
+    #confEmail {
+      text-transform: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div id="login-section" class="login-container">
+      <h1 class="text-gold h4 fw-bold">PLANTÃO - DPI SUL</h1>
+      <p class="small mb-4 text-white">Autenticação de Servidor</p>
+      <div id="div-busca">
+        <label class="form-label text-gold small fw-bold">MATRÍCULA:</label>
+        <input type="text" id="userMatricula" class="form-control mb-3 text-center" placeholder="000.000-0-0">
+        <button onclick="buscarEConfirmar()" class="btn btn-pcce w-100">VERIFICAR DADOS</button>
+      </div>
+      <div id="div-confirmacao" style="display:none;">
+        <div class="confirma-card">
+          <p class="mb-1 text-gold"><b>NOME:</b> <span id="confNome" class="text-white"></span></p>
+          <p class="mb-1 text-gold"><b>MATRÍCULA:</b> <span id="confMat" class="text-white"></span></p>
+          <p class="mb-0 text-gold"><b>E-MAIL:</b> <span id="confEmail" class="text-white"></span></p>
+        </div>
+        <button id="btnEnviarToken" onclick="enviarTokenFinal()" class="btn btn-pcce w-100 mt-3">OS DADOS ESTÃO
+          CORRETOS, ENVIAR TOKEN</button>
+        <button onclick="location.reload()" class="btn btn-link btn-sm text-white mt-2">Voltar</button>
+      </div>
+    </div>
+
+    <div id="main-form" style="display:none;">
+      <div class="card main-card mt-4">
+        <div class="card-header border-gold d-flex justify-content-between align-items-center bg-transparent py-2">
+          <span class="text-gold fw-bold small">DPI SUL - FORMULÁRIO OFICIAL</span>
+          <div>
+            <span id="displayUserInfo" class="badge border border-gold text-gold me-2"></span>
+            <button onclick="fazerLogout()" class="btn btn-sm btn-outline-danger" style="font-size: 0.7rem;">SAIR <i
+                class="bi bi-box-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="text-center mb-4">
+            <h4 class="text-white fw-bold mb-0">RELATÓRIO DE PLANTÃO</h4>
+            <small class="text-white opacity-75 uppercase" style="letter-spacing: 1px;">Departamento de Polícia do
+              Interior Sul</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="label-small">Unidade Policial de Atuação:</label>
+            <input class="form-control" list="delegaciasOptions" id="selectDelegacia"
+              placeholder="Selecione a Unidade...">
+            <datalist id="delegaciasOptions"></datalist>
+          </div>
+
+          <div class="row g-2 mb-4">
+            <div class="col-6 col-md-3">
+              <label class="label-small">Entrada (Data)</label>
+              <input type="text" id="p_d_ent" class="form-control" placeholder="DD/MM/AAAA">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="label-small">Entrada (Hora)</label>
+              <input type="time" id="p_h_ent" class="form-control">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="label-small">Saída (Data)</label>
+              <input type="text" id="p_d_sai" class="form-control" placeholder="DD/MM/AAAA">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="label-small">Saída (Hora)</label>
+              <input type="time" id="p_h_sai" class="form-control">
+            </div>
+          </div>
+
+          <div class="section-divider">
+            <span class="section-title"><i class="bi bi-people-fill me-2"></i>Composição da Equipe de Serviço</span>
+          </div>
+          <div class="mb-4">
+            <div id="equipeContainer"></div>
+            <button class="btn btn-xs btn-outline-warning" style="font-size: 0.7rem;" onclick="adicionarPolicial()">+
+              ADICIONAR POLICIAL</button>
+          </div>
+
+          <div class="section-divider">
+            <span class="section-title"><i class="bi bi-calculator-fill me-2"></i>Procedimentos Quantitativos
+              (Totais)</span>
+          </div>
+          <div class="card card-quant p-3 mb-4"
+            style="background: rgba(0,0,0,0.2); border: 1px dashed var(--pcce-gold);">
+            <div class="row g-2">
+              <div class="col-4 col-md-2"><label class="label-small">B.O.</label><input type="number" id="q_bo"
+                  class="form-control text-center p-1" value="0"></div>
+              <div class="col-4 col-md-2"><label class="label-small">Guias</label><input type="number" id="q_guia"
+                  class="form-control text-center p-1" value="0"></div>
+              <div class="col-4 col-md-2"><label class="label-small">Apreensões</label><input type="number" id="q_apre"
+                  class="form-control text-center p-1" value="0"></div>
+              <div class="col-4 col-md-2"><label class="label-small">Presos</label><input type="number" id="q_pres"
+                  class="form-control text-center p-1" value="0"></div>
+              <div class="col-4 col-md-2"><label class="label-small">Medidas Prot.</label><input type="number"
+                  id="q_medi" class="form-control text-center p-1" value="0"></div>
+              <div class="col-4 col-md-2"><label class="label-small">Outros</label><input type="number" id="q_outr"
+                  class="form-control text-center p-1" value="0"></div>
+            </div>
+          </div>
+
+          <div class="section-divider">
+            <span class="section-title"><i class="bi bi-file-earmark-text-fill me-2"></i>Detalhamento Qualitativo
+              (Procedimentos)</span>
+          </div>
+          <div id="procedimentosContainer"></div>
+          <div class="mb-3">
+            <button onclick="adicionarProc()" class="btn btn-xs btn-outline-warning" style="font-size: 0.7rem;">+
+              ADICIONAR PROCEDIMENTO</button>
+          </div>
+          <div class="section-divider">
+            <span class="section-title"><i class="bi bi-chat-left-text-fill me-2"></i>Observações do Plantão</span>
+          </div>
+          <div class="mb-4">
+            <textarea id="obs_plantao" class="form-control" rows="3"
+              placeholder="Relate aqui intercorrências, falta de energia, problemas em viaturas, etc."
+              style="background: rgba(0,0,0,0.2); color: white; border: 1px solid 			var(--pcce-gold);"></textarea>
+          </div>
+
+          <div class="d-flex gap-2 mt-4 flex-wrap align-items-center justify-content-center">
+            <button id="btnSalvarRascunho" onclick="salvarRascunho()"
+              class="btn btn-sm btn-outline-secondary px-2 text-white">SALVAR RASCUNHO</button>
+            <button id="btnRetomarRascunho" onclick="abrirModalRetomada()"
+              class="btn btn-sm btn-outline-secondary px-2 text-white">RETOMAR RASCUNHO</button>
+            <button id="btnRetificar" onclick="abrirModalRetificar()"
+              class="btn btn-sm btn-warning px-2 text-dark fw-bold">RETIFICAR RELATÓRIO</button>
+
+            <button onclick="validarERevisar()" class="btn btn-pcce btn-sm px-2">FINALIZAR RELATÓRIO</button>
+
+            <button id="btnImprimirPlantao" onclick="prepararImpressaoPlantao()" class="btn btn-sm btn-success px-2"
+              disabled><i class="bi bi-printer"></i> PLANTÃO</button>
+            <button id="btnImprimirExtra" onclick="abrirModalExtra()" class="btn btn-sm btn-info px-2 text-white"
+              disabled><i class="bi bi-clock-history"></i> EXTRA</button>
+            <div id="badgeDirty" style="display:none; margin-left:8px;">
+              <span class="badge bg-warning text-dark" title="Existem alterações não salvas">ALTERAÇÕES NÃO
+                SALVAS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <datalist id="servidoresDatalist"></datalist>
+
+
+
+  <!-- Banner de alterações não salvas (fixo inferior direito) -->
+  <div id="dirtyBanner" style="display:none;">
+    <div class="tarja">ALTERAÇÕES NÃO SALVAS — SALVE OU FINALIZE</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
