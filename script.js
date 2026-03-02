@@ -419,20 +419,28 @@ function adicionarPolicial() {
 
     div.innerHTML = `
       <div class="row g-2 align-items-end">
-        <div class="col-md-5">
+        <div class="col-md-6">
           <label class="label-small">Nome do Policial</label>
           <input type="text" class="form-control nome-policial" list="servidoresDatalist" onchange="conferirPol(this, ${id})">
         </div>
         
-        <div class="col-md-7 d-flex flex-wrap align-items-center pb-1">
-          <div class="me-3">
-            <span class="label-small">Resumo:</span>
-            <span id="resumo_escala_${id}" class="badge bg-dark text-gold" style="font-size: 0.7rem;">NORMAL</span>
-            <span id="total_h_${id}" class="badge-hora">--h</span>
+        <div class="col-md-2">
+          <label class="label-small">Escala</label>
+          <select class="form-select escala-pol px-2" onchange="mudarEscala(${id}, this)">
+            <option value="Escolha" selected disabled>ESCOLHA</option>
+            <option value="Normal">NORMAL</option>
+            <option value="Extraordinária">EXTRA</option>
+          </select>
+        </div>
+
+        <div class="col-md-4 d-flex align-items-center pb-1">
+          <div class="ms-1 w-100 mt-2 mt-md-0 d-md-flex align-items-md-center justify-content-md-start">
+            <div>
+              <span class="label-small me-1 d-inline-block d-md-block text-md-start" style="margin-bottom: 0;">Resumo:</span>
+              <span id="resumo_escala_${id}" class="badge bg-dark text-gold align-middle" style="font-size: 0.7rem;">ESCOLHA</span>
+              <span id="total_h_${id}" class="badge-hora align-middle">--h</span>
+            </div>
           </div>
-          <button class="btn btn-outline-warning btn-sm" style="font-size: 0.7rem;" onclick="abrirModalHorarioPol(${id})">
-            <i class="bi bi-clock-history"></i> <span class="d-none d-sm-inline">CONFIGURAR HORÁRIO (NORMAL/EXTRA)</span><span class="d-inline d-sm-none">AJUSTAR HORÁRIO</span>
-          </button>
         </div>
       </div>
 
@@ -444,13 +452,33 @@ function adicionarPolicial() {
         <div class="col-md-1 d-flex align-items-end"><button class="btn btn-outline-danger btn-sm w-100" onclick="document.getElementById('pol_${id}').remove()"><i class="bi bi-trash"></i></button></div>
       </div>
 
-      <div id="horarios_indiv_${id}" style="display: none;">
-        <input type="checkbox" id="sync_${id}" checked>
-        <input type="text" class="escala-pol" value="Normal">
-        <input type="text" class="p-d-ent-pol">
-        <input type="time" class="p-h-ent-pol">
-        <input type="text" class="p-d-sai-pol">
-        <input type="time" class="p-h-sai-pol">
+      <div id="horarios_indiv_${id}" class="mt-2 p-2" style="display: none; background: rgba(0,0,0,0.2); border: 1px solid var(--pcce-gold); border-radius: 5px;">
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" id="sync_${id}" checked onchange="toggleSync(${id})">
+          <label class="form-check-label text-warning" style="font-size: 0.75rem; font-weight: bold; text-transform: uppercase;" for="sync_${id}">
+            MESMO HORÁRIO DO PLANTÃO ORDINÁRIO
+          </label>
+        </div>
+        <div id="manual_inputs_${id}" style="display: none;">
+          <div class="row g-2">
+            <div class="col-6 col-md-3">
+              <label class="label-small">ENTRADA — DATA</label>
+              <input type="text" class="form-control form-control-sm p-d-ent-pol" placeholder="DD/MM/AAAA" onchange="calcularHorasPol(${id})">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="label-small">ENTRADA — HORA</label>
+              <input type="time" class="form-control form-control-sm p-h-ent-pol" onchange="calcularHorasPol(${id})">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="label-small">SAÍDA — DATA</label>
+              <input type="text" class="form-control form-control-sm p-d-sai-pol" placeholder="DD/MM/AAAA" onchange="calcularHorasPol(${id})">
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="label-small">SAÍDA — HORA</label>
+              <input type="time" class="form-control form-control-sm p-h-sai-pol" onchange="calcularHorasPol(${id})">
+            </div>
+          </div>
+        </div>
       </div>
       `;
 
@@ -495,13 +523,13 @@ function conferirPol(input, id) {
 // Função que mostra/esconde os campos de horário manual
 function toggleSync(id) {
     const isSynced = document.getElementById(`sync_${id}`).checked;
-    const divHorarios = document.getElementById(`horarios_indiv_${id}`);
+    const manualInputs = document.getElementById(`manual_inputs_${id}`);
     const row = document.getElementById(`pol_${id}`);
 
     if (isSynced) {
-        divHorarios.style.display = 'none';
+        manualInputs.style.display = 'none';
     } else {
-        divHorarios.style.display = 'flex';
+        manualInputs.style.display = 'block';
         // Sugere os horários do plantão geral
         row.querySelector('.p-d-ent-pol').value = document.getElementById('p_d_ent').value;
         row.querySelector('.p-h-ent-pol').value = document.getElementById('p_h_ent').value;
@@ -511,6 +539,33 @@ function toggleSync(id) {
         // Re-ativa o calendário para garantir que funcione nos campos manuais
         flatpickr(row.querySelector('.p-d-ent-pol'), { locale: "pt", dateFormat: "d/m/Y", allowInput: true });
         flatpickr(row.querySelector('.p-d-sai-pol'), { locale: "pt", dateFormat: "d/m/Y", allowInput: true });
+    }
+    calcularHorasPol(id);
+}
+
+function mudarEscala(id, selectElement) {
+    const valor = selectElement.value;
+    const badgeEscala = document.getElementById(`resumo_escala_${id}`);
+    const boxHorarios = document.getElementById(`horarios_indiv_${id}`);
+
+    if (valor && valor !== "Escolha") {
+        boxHorarios.style.display = 'block';
+        badgeEscala.innerText = valor.toUpperCase();
+        badgeEscala.className = valor === 'Normal' ? 'badge bg-dark text-gold' : 'badge bg-warning text-dark';
+
+        // Aplica validação de calendários (limites) com base nos valores gerais
+        const row = document.getElementById(`pol_${id}`);
+        const dEntGeral = document.getElementById('p_d_ent').value;
+        const dSaiGeral = document.getElementById('p_d_sai').value;
+
+        if (dEntGeral && dSaiGeral) {
+            flatpickr(row.querySelector('.p-d-ent-pol'), { locale: "pt", dateFormat: "d/m/Y", allowInput: true, minDate: dEntGeral, maxDate: dSaiGeral });
+            flatpickr(row.querySelector('.p-d-sai-pol'), { locale: "pt", dateFormat: "d/m/Y", allowInput: true, minDate: dEntGeral, maxDate: dSaiGeral });
+        }
+    } else {
+        boxHorarios.style.display = 'none';
+        badgeEscala.innerText = "ESCOLHA";
+        badgeEscala.className = 'badge bg-dark text-gold';
     }
     calcularHorasPol(id);
 }
@@ -584,126 +639,7 @@ function addP(id, tipo) {
     cont.appendChild(d);
 }
 
-async function abrirModalHorarioPol(id) {
-    // 1. Captura os limites do plantão geral
-    const dEntGeral = document.getElementById('p_d_ent').value;
-    const hEntGeral = document.getElementById('p_h_ent').value;
-    const dSaiGeral = document.getElementById('p_d_sai').value;
-    const hSaiGeral = document.getElementById('p_h_sai').value;
-
-    // Validação prévia: Impede abrir se o geral estiver vazio
-    if (!dEntGeral || !hEntGeral || !dSaiGeral || !hSaiGeral) {
-        return Swal.fire('Atenção', 'Defina o período geral do plantão no cabeçalho antes de configurar a equipe.', 'warning');
-    }
-
-    const row = document.getElementById(`pol_${id}`);
-    const isSynced = document.getElementById(`sync_${id}`).checked;
-    const escalaAtual = row.querySelector('.escala-pol').value;
-
-    const { value: formValues } = await Swal.fire({
-        title: 'DEFINIR ESCALA E HORÁRIO',
-        background: '#0a192f',
-        color: '#fff',
-        html: `
-          <div class="text-start" style="font-size: 0.9rem;">
-            <label class="label-small">TIPO DE ESCALA:</label>
-            <select id="swal-escala" class="form-select mb-3">
-              <option value="Normal" ${escalaAtual === 'Normal' ? 'selected' : ''}>PLANTÃO NORMAL</option>
-              <option value="Extraordinária" ${escalaAtual === 'Extraordinária' ? 'selected' : ''}>PLANTÃO EXTRA</option>
-            </select>
-
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="checkbox" id="swal-sync" ${isSynced ? 'checked' : ''} 
-                onchange="document.getElementById('swal-manual-inputs').style.display = this.checked ? 'none' : 'block'">
-              <label class="form-check-label text-white" for="swal-sync" style="font-size: 0.8rem;">
-                MESMO HORÁRIO DO PLANTÃO GERAL
-              </label>
-            </div>
-
-            <div id="swal-manual-inputs" style="display: ${isSynced ? 'none' : 'block'};">
-              <div class="row g-2">
-                <div class="col-6">
-                  <label class="label-small">INÍCIO (DATA)</label>
-                  <input type="text" id="swal-d-ent" class="form-control form-control-sm" placeholder="DD/MM/AAAA" value="${row.querySelector('.p-d-ent-pol').value}">
-                </div>
-                <div class="col-6">
-                  <label class="label-small">INÍCIO (HORA)</label>
-                  <input type="time" id="swal-h-ent" class="form-control form-control-sm" value="${row.querySelector('.p-h-ent-pol').value}">
-                </div>
-                <div class="col-6">
-                  <label class="label-small">FIM (DATA)</label>
-                  <input type="text" id="swal-d-sai" class="form-control form-control-sm" placeholder="DD/MM/AAAA" value="${row.querySelector('.p-d-sai-pol').value}">
-                </div>
-                <div class="col-6">
-                  <label class="label-small">FIM (HORA)</label>
-                  <input type="time" id="swal-h-sai" class="form-control form-control-sm" value="${row.querySelector('.p-h-sai-pol').value}">
-                </div>
-              </div>
-              <small class="text-warning mt-2 d-block" style="font-size:0.65rem">LIMITE: ${dEntGeral} ${hEntGeral} até ${dSaiGeral} ${hSaiGeral}</small>
-            </div>
-          </div>
-        `,
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'CONFIRMAR',
-        cancelButtonText: 'CANCELAR',
-        confirmButtonColor: '#c5a059',
-        didOpen: () => {
-            // Bloqueia o calendário para não permitir datas fora do plantão geral
-            const confLimites = {
-                locale: "pt",
-                dateFormat: "d/m/Y",
-                allowInput: true,
-                minDate: dEntGeral,
-                maxDate: dSaiGeral
-            };
-            flatpickr("#swal-d-ent", confLimites);
-            flatpickr("#swal-d-sai", confLimites);
-        },
-        preConfirm: () => {
-            const sync = document.getElementById('swal-sync').checked;
-            if (sync) return { escala: document.getElementById('swal-escala').value, sync: true };
-
-            const dE = document.getElementById('swal-d-ent').value;
-            const hE = document.getElementById('swal-h-ent').value;
-            const dS = document.getElementById('swal-d-sai').value;
-            const hS = document.getElementById('swal-h-sai').value;
-
-            if (!dE || !hE || !dS || !hS) { Swal.showValidationMessage('Preencha todos os campos de horário'); return false; }
-
-            // Validação da Cerca Digital via Timestamp
-            const converterISO = (br) => { const p = br.split('/'); return `${p[2]}-${p[1]}-${p[0]}`; };
-            const limitIni = new Date(`${converterISO(dEntGeral)}T${hEntGeral}`);
-            const limitFim = new Date(`${converterISO(dSaiGeral)}T${hSaiGeral}`);
-            const polIni = new Date(`${converterISO(dE)}T${hE}`);
-            const polFim = new Date(`${converterISO(dS)}T${hS}`);
-
-            if (polIni < limitIni) { Swal.showValidationMessage('Início individual não pode ser anterior ao plantão geral'); return false; }
-            if (polFim > limitFim) { Swal.showValidationMessage('Fim individual não pode ser posterior ao plantão geral'); return false; }
-            if (polFim <= polIni) { Swal.showValidationMessage('A saída deve ser posterior à entrada'); return false; }
-
-            return { escala: document.getElementById('swal-escala').value, sync: false, dEnt: dE, hEnt: hE, dSai: dS, hSai: hS };
-        }
-    });
-
-    if (formValues) {
-        document.getElementById(`sync_${id}`).checked = formValues.sync;
-        row.querySelector('.escala-pol').value = formValues.escala;
-
-        if (!formValues.sync) {
-            row.querySelector('.p-d-ent-pol').value = formValues.dEnt;
-            row.querySelector('.p-h-ent-pol').value = formValues.hEnt;
-            row.querySelector('.p-d-sai-pol').value = formValues.dSai;
-            row.querySelector('.p-h-sai-pol').value = formValues.hSai;
-        }
-
-        const badgeEscala = document.getElementById(`resumo_escala_${id}`);
-        badgeEscala.innerText = formValues.escala.toUpperCase();
-        badgeEscala.className = formValues.escala === 'Normal' ? 'badge bg-dark text-gold' : 'badge bg-warning text-dark';
-
-        calcularHorasPol(id);
-    }
-}
+// Modal Individual Substituído por Inline
 
 function validarERevisar() {
     const inputUnidade = document.getElementById('selectDelegacia');
@@ -762,6 +698,12 @@ function validarERevisar() {
         const polHoraSai = isSynced ? hSai : div.querySelector('.p-h-sai-pol').value;
         const textoHora = document.getElementById(`total_h_${id}`).innerText;
         const totalH = parseInt(textoHora) || 0;
+
+        const escalaPolVal = div.querySelector('.escala-pol').value;
+        if (!escalaPolVal || escalaPolVal === "Escolha") {
+            erroHorarioPol = true;
+            msgErroPol = `SELECIONE A ESCALA (NORMAL OU EXTRA) PARA O POLICIAL ${nome}.`;
+        }
 
         if (totalH > 24) { erroHorarioPol = true; msgErroPol = `O POLICIAL ${nome} EXCEDE O LIMITE DE 24H.`; }
 
@@ -1405,12 +1347,15 @@ function reconstruirFormulario(dados) {
                 ultimaDiv.querySelector('.p-h-sai-pol').value = pol.hSai || "";
 
                 // Atualiza visualmente o Badge de Escala (Cor e Texto)
-                const badgeEscala = document.getElementById(`resumo_escala_${id}`);
-                if (badgeEscala) {
-                    const tipoEscala = pol.escala || "Normal";
-                    badgeEscala.innerText = tipoEscala.toUpperCase();
-                    badgeEscala.className = tipoEscala === 'Normal' ? 'badge bg-dark text-gold' : 'badge bg-warning text-dark';
-                }
+                let tipoEscala = pol.escala || "Escolha";
+                if (tipoEscala.toUpperCase() === "NORMAL") tipoEscala = "Normal";
+
+                // Força atualização através da nova função mudarEscala
+                ultimaDiv.querySelector('.escala-pol').value = tipoEscala;
+                mudarEscala(id, ultimaDiv.querySelector('.escala-pol'));
+
+                // Aciona sync explicitamente
+                toggleSync(id);
 
                 // Atualiza o badge de horas e busca telefone/lotação (Mantendo suas funções originais)
                 conferirPol(ultimaDiv.querySelector('.nome-policial'), id);
