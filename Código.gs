@@ -331,6 +331,11 @@ function processarEnvioProdutividade(quant, quali, user, idExistente) {
       ]]);
     });
     
+    // 4. ENVIO DE EMAIL COM O CÓDIGO DO PROTOCOLO FINAL
+    if (user && user.email) {
+      enviarEmailFinalizado(user.email, idTransacao, quant.delegacia, quant.entrada, ehRetificacao);
+    }
+    
     return { sucesso: true, idTransacao: idTransacao };
   } catch (e) {
     return { sucesso: false, msg: e.toString() };
@@ -439,8 +444,14 @@ function gerenciarSalvarRascunho(dados) {
     sheet.appendRow(linhaParaSalvar);
   }
 
-  // 3. ENVIO DE E-MAIL COM O CÓDIGO
-  enviarEmailRascunho(dados.user.email, id, dados.quant.delegacia, dados.quant.entrada);
+  // 3. ENVIO DE E-MAIL COM O CÓDIGO (APENAS NA PRIMEIRA VEZ / CRIAÇÃO DO RASCUNHO)
+  if (linhaExistente === -1 && dados.user && dados.user.email) {
+    try {
+      enviarEmailRascunho(dados.user.email, id, dados.quant.delegacia, dados.quant.entrada);
+    } catch (e) {
+      console.error("Erro ao enviar email de rascunho:", e);
+    }
+  }
 
   return { sucesso: true, idRascunho: id };
 }
@@ -464,6 +475,31 @@ function enviarEmailRascunho(email, idRascunho, unidade, dataPlantao) {
     subject: assunto,
     htmlBody: corpoHtml
   });
+}
+
+function enviarEmailFinalizado(email, idTransacao, unidade, dataPlantao, ehRetificacao) {
+  const tipoAcao = ehRetificacao ? "Retificado" : "Finalizado";
+  const assunto = `PROTOCOLO DE RELATÓRIO ${tipoAcao.toUpperCase()} - PLANTÃO DPI SUL`;
+  const corpoHtml = `
+    <div style="font-family: sans-serif; background-color: #0a192f; color: white; padding: 20px; border-radius: 10px; border: 1px solid #c5a059;">
+      <h2 style="color: #c5a059;">Relatório de Plantão ${tipoAcao}</h2>
+      <p>Unidade: <strong>${unidade}</strong></p>
+      <p>Início do Plantão: <strong>${dataPlantao}</strong></p>
+      <hr style="border: 0; border-top: 1px solid #c5a059;">
+      <p style="font-size: 1.2em;">Seu código de protocolo ${ehRetificacao ? 'retificado ' : ''}é: <span style="background-color: #c5a059; color: #0a192f; padding: 5px 10px; font-weight: bold; border-radius: 5px;">${idTransacao}</span></p>
+      <p style="color: #ffc107; font-size: 0.9em;">Este relatório foi gravado com sucesso na base de dados.</p>
+    </div>
+  `;
+  
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: assunto,
+      htmlBody: corpoHtml
+    });
+  } catch(e) {
+    console.error("Erro ao enviar email finalizado", e);
+  }
 }
 
 function carregarRascunhoExistente(idRascunho) {
