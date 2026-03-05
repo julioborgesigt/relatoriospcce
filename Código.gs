@@ -462,7 +462,7 @@ function enviarEmailRascunho(email, idRascunho, unidade, dataPlantao) {
       <p>Início do Plantão: <strong>${dataPlantao}</strong></p>
       <hr style="border: 0; border-top: 1px solid #c5a059;">
       <p style="font-size: 1.2em;">Seu código de recuperação é: <span style="background-color: #c5a059; color: #0a192f; padding: 5px 10px; font-weight: bold; border-radius: 5px;">${idRascunho}</span></p>
-      <p style="color: #ffc107; font-size: 0.9em;">⚠️ Este rascunho expirará automaticamente em 36 horas se não for finalizado.</p>
+      <p style="color: #ffc107; font-size: 0.9em;">⚠️ Este rascunho expirará automaticamente após 24 horas se não for finalizado.</p>
     </div>
   `;
   
@@ -481,12 +481,12 @@ function carregarRascunhoExistente(idRascunho) {
 
   for (let i = 1; i < dados.length; i++) {
     if (dados[i][0] === idRascunho) {
-      // Verifica se o rascunho tem mais de 36 horas
+      // Verifica se o rascunho tem mais de 25 horas (Sincronizado com a limpeza)
       const dataCriacao = new Date(dados[i][3]).getTime();
       const horasDecorridas = (agora - dataCriacao) / (1000 * 60 * 60);
 
-      if (horasDecorridas > 36) {
-        return { sucesso: false, msg: "Este rascunho expirou (limite de 36h)." };
+      if (horasDecorridas > 25) {
+        return { sucesso: false, msg: "Este rascunho expirou (limite de 25h)." };
       }
 
       return { sucesso: true, payload: JSON.parse(dados[i][6]) };
@@ -507,27 +507,35 @@ function apagarRascunho(id) {
 }
 
 /**
- * Função de limpeza automática (Rodar via Gatilho de Tempo)
+ * Função de limpeza automática de rascunhos
+ * Ajustada para remover após 25 horas de criação
  */
 function limpezaAutomaticaRascunhos() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Rascunhos");
   if (!sheet) return;
+  
   const dados = sheet.getDataRange().getValues();
   const agora = new Date().getTime();
   let linhasDeletadas = 0;
 
-  // Percorre de baixo para cima para não errar o índice ao deletar
+  // Percorre de baixo para cima (da última linha para a segunda)
+  // i >= 1 garante que a Linha 1 (cabeçalho) nunca seja mexida
   for (let i = dados.length - 1; i >= 1; i--) {
+    // A data de criação está na Coluna D (índice 3 do array)
     const dataCriacao = new Date(dados[i][3]).getTime();
-    if (isNaN(dataCriacao)) continue;
     
+    if (isNaN(dataCriacao)) continue; // Pula se a célula não tiver uma data válida
+    
+    // Calcula a diferença em horas
     const horasDecorridas = (agora - dataCriacao) / (1000 * 60 * 60);
-    if (horasDecorridas > 36) {
-      sheet.deleteRow(i + 1);
+    
+    // Se passou de 25 horas, deleta a linha
+    if (horasDecorridas > 25) {
+      sheet.deleteRow(i + 1); // i + 1 converte o índice do array para o número da linha no Sheets
       linhasDeletadas++;
     }
   }
-  console.log("Limpeza concluída. Rascunhos expirados removidos: " + linhasDeletadas);
+  console.log("Limpeza de Rascunhos concluída. Removidos: " + linhasDeletadas);
 }
 
 //**Dashboard **/
@@ -832,4 +840,28 @@ function removerDadosAntigosID(id) {
       }
     }
   });
+}
+
+/**
+ * Limpa tokens usados ou expirados há mais de 24 horas
+ * Rodar via Gatilho de Tempo
+ */
+function limpezaAutomaticaTokens() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Tokens_Acesso");
+  if (!sheet) return;
+  const dados = sheet.getDataRange().getValues();
+  const agora = new Date().getTime();
+  let linhasDeletadas = 0;
+
+  for (let i = dados.length - 1; i >= 1; i--) {
+    const dataExpiracao = new Date(dados[i][2]).getTime();
+    const status = dados[i][3];
+    
+    // Deleta se já foi usado OU se expirou há mais de 24 horas
+    if (status === "Usado" || (agora - dataExpiracao) > (24 * 60 * 60 * 1000)) {
+      sheet.deleteRow(i + 1);
+      linhasDeletadas++;
+    }
+  }
+  console.log("Tokens removidos: " + linhasDeletadas);
 }
