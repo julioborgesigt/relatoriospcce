@@ -7,7 +7,7 @@ style.innerHTML = `#badgeDirty .badge{font-size:0.75rem; padding:0.45rem 0.6rem;
         #dirtyBanner .tarja{ background: rgba(255,255,255,0.95); border-left:6px solid #c82333; color:#c82333; padding:8px 12px; font-weight:700; border-radius:4px; box-shadow:0 6px 18px rgba(0,0,0,0.12); font-size:0.9rem;}
         #badgeDirty{display:none;} `;
 document.head.appendChild(style);
-const API_URL = "https://script.google.com/macros/s/AKfycbxZfxT19yUi_PVP4byjJgsr7DaVc8J4RjdNJ3Q76u6Pk29IKP1gWiQaFnhowSHWg37k/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxehWoU0cbseRkbe3L3XSMXqsBf3O8I4ujfKPpBzlJv_q2fuYk2zqz-hE_zOpslh6IZ/exec";
 let userLogado = { nome: "", matricula: "", email: "" };
 let listaServidores = [];
 let listaDelegacias = [];

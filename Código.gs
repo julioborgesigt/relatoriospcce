@@ -238,8 +238,16 @@ function validarTokenNoServidor(email, tokenDigitado) {
 }
 
 function processarEnvioProdutividade(quant, quali, user, idExistente) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheetQuant = ss.getSheetByName("Base_Quantitativos");
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+  } catch (e) {
+    return { sucesso: false, msg: "Sistema momentaneamente ocupado, tente novamente em alguns segundos." };
+  }
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheetQuant = ss.getSheetByName("Base_Quantitativos");
   const sheetQuali = ss.getSheetByName("Base_Qualitativos");
   const sheetEquipe = ss.getSheetByName("Base_Equipe");
   const timezone = ss.getSpreadsheetTimeZone();
@@ -339,6 +347,8 @@ function processarEnvioProdutividade(quant, quali, user, idExistente) {
     return { sucesso: true, idTransacao: idTransacao };
   } catch (e) {
     return { sucesso: false, msg: e.toString() };
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -409,8 +419,16 @@ function getScriptUrl() { return ScriptApp.getService().getUrl(); }
    ========================================================== */
 
 function gerenciarSalvarRascunho(dados) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName("Rascunhos");
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+  } catch (e) {
+    return { sucesso: false, msg: "Sistema momentaneamente ocupado para rascunhos, tente novamente em alguns segundos." };
+  }
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName("Rascunhos");
   const agora = new Date();
   
   // 1. Definição do ID e Linha (Lógica já existente)
@@ -454,6 +472,9 @@ function gerenciarSalvarRascunho(dados) {
   }
 
   return { sucesso: true, idRascunho: id };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 // FUNÇÃO AUXILIAR DE E-MAIL
