@@ -876,11 +876,17 @@ function finalizarSessaoSemRecarregar(idSucesso) {
         btnFinalizar.innerText = "RELATÓRIO ENVIADO";
     }
 
-    // Desabilita o botão de salvar rascunho após finalizar
+    // Desabilita os botões de rascunho após finalizar
     const btnS = document.getElementById('btnSalvarRascunho');
     if (btnS) {
         btnS.disabled = true;
         btnS.style.opacity = "0.5";
+    }
+
+    const btnR = document.getElementById('btnRetomarRascunho');
+    if (btnR) {
+        btnR.disabled = true;
+        btnR.style.opacity = "0.5";
     }
 }
 
