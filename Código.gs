@@ -19,23 +19,16 @@ function doPost(e) {
       } 
       else if (action === "obterDelegacias") {
       var ss = SpreadsheetApp.getActiveSpreadsheet();
-      var sheet = ss.getSheetByName("Apoio_Delegacias");
-      // Pega da linha 2 até a última linha com dados, pegando as colunas de A (1) a D (4)
+      var sheet = ss.getSheetByName("Delegacias_Plantonistas");
+      // Pega da linha 2 até a última linha com dados na coluna A
       var lastRow = sheet.getLastRow();
       var delegacias = [];
       
       if (lastRow > 1) {
-        // Lê as colunas A, B, C e D da linha 2 até o fim
-        var values = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
-        
-        // Filtra: o valor da coluna A não pode ser vazio e o valor da coluna D deve ser "SIM" (ignorando maiúsculas/minúsculas/espaços)
-        delegacias = values
-          .filter(function(row) { 
-            return row[0] !== "" && String(row[3]).trim().toUpperCase() === "SIM"; 
-          })
-          .map(function(row) { 
-            return String(row[0]).trim(); 
-          });
+        // Lê a coluna A (índice 1) da linha 2 até o fim
+        var values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        // Transforma matriz [[a],[b]] em array [a,b] e remove vazios
+        delegacias = values.map(function(r){ return String(r[0]).trim(); }).filter(function(d){ return d !== ""; });
       }
       
       return ContentService.createTextOutput(JSON.stringify(delegacias)).setMimeType(ContentService.MimeType.JSON);
