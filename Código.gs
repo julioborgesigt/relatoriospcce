@@ -144,21 +144,34 @@ function buscarServidorPelaMatricula(matriculaOriginal) {
 
   // 1. LOCALIZAÇÃO DO SERVIDOR
   let servidorEncontrado = null;
-  for (let i = 1; i < dadosServ.length; i++) {
-    // Coluna Z = índice 25
-    if (dadosServ[i][25].toString() === matriculaLimpa) {
-      servidorEncontrado = {
-        nome: dadosServ[i][0],
-        email: dadosServ[i][18].toString().split(/[\s,;]+/)[0], // Primeiro e-mail da célula
-        lotacao: dadosServ[i][6].toString().trim(), // Coluna G = índice 6
-        matricula: matriculaLimpa
-      };
-      break;
+  let erroDetalhado = "";
+
+  try {
+    for (let i = 1; i < dadosServ.length; i++) {
+      // Ler a matrícula na Coluna C (índice 2) que é padrão, e na Coluna Z (índice 25)
+      const matNormal = dadosServ[i][2] ? dadosServ[i][2].toString().replace(/[^0-9a-zA-Z]/g, "").toUpperCase() : "";
+      const matEspecialZ = dadosServ[i][25] ? dadosServ[i][25].toString().trim().toUpperCase() : "";
+      
+      if (matNormal === matriculaLimpa || matEspecialZ === matriculaLimpa) {
+        servidorEncontrado = {
+          nome: dadosServ[i][0] ? dadosServ[i][0].toString() : "Nomedesconhecido",
+          email: dadosServ[i][18] ? dadosServ[i][18].toString().split(/[\s,;]+/)[0] : "", // Primeiro e-mail da célula S
+          lotacao: dadosServ[i][6] ? dadosServ[i][6].toString().trim() : "", // Coluna G = índice 6
+          matricula: matriculaLimpa
+        };
+        break;
+      }
     }
+  } catch (e) {
+    erroDetalhado = e.message;
+  }
+
+  if (erroDetalhado) {
+    return { sucesso: false, msg: "Erro interno de leitura na planilha: " + erroDetalhado };
   }
 
   if (!servidorEncontrado) {
-    return { sucesso: false, msg: "Matrícula não localizada." };
+    return { sucesso: false, msg: `Matrícula ${matriculaLimpa} não localizada. Verifique se a matrícula está correta na aba Servidores (Coluna C ou Z).` };
   }
 
   // 2. REGRA ESPECIAL: ACESSO DIRETO DPI SUL / JUAZEIRO
@@ -266,7 +279,6 @@ function processarEnvioProdutividade(quant, quali, user, idExistente) {
     
   const obsFinal = (quant.observacoes || "").toUpperCase().trim();
 
-  try {
     // 3. Se for retificação, remove os registros antigos antes de inserir os novos
     if (ehRetificacao) {
       removerDadosAntigosID(idExistente);
